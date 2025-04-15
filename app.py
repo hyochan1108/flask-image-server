@@ -6,8 +6,8 @@ app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# YOLO 모델 로드
-model = YOLO('yolov8n.pt')  # 또는 'best.pt' 등
+# YOLO 모델 로드 (yolov8n.pt 또는 학습된 best.pt)
+model = YOLO('yolov8n.pt')  # 모델 경로를 'best.pt'로 바꿔도 됨
 
 @app.route('/')
 def home():
