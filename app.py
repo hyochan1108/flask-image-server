@@ -6,7 +6,8 @@ app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-model = YOLO('yolov8n.pt')  # 또는 학습한 모델 경로 'best.pt'
+# YOLO 모델 로드
+model = YOLO('yolov8n.pt')  # 또는 'best.pt' 등
 
 @app.route('/')
 def home():
@@ -24,9 +25,15 @@ def upload_image():
     save_path = os.path.join(UPLOAD_FOLDER, image.filename)
     image.save(save_path)
 
-    results = model(save_path)
-    boxes = results[0].boxes.xyxy.cpu().tolist()
-    classes = results[0].boxes.cls.cpu().tolist()
+    try:
+        results = model(save_path)
+        boxes = results[0].boxes.xyxy.cpu().tolist()
+        classes = results[0].boxes.cls.cpu().tolist()
+    except Exception as e:
+        return jsonify({
+            'error': 'YOLO 분석 중 오류 발생',
+            'detail': str(e)
+        }), 500
 
     return jsonify({
         'message': f'✅ 이미지 저장 및 분석 완료: {image.filename}',
