@@ -1,27 +1,31 @@
 from flask import Flask, request, jsonify, send_from_directory
-from ultralytics import YOLO
 import os
+import requests
+from ultralytics import YOLO
 
 app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# YOLO 모델 로드 (yolov8n.pt 또는 학습된 best.pt)
-model = YOLO('yolov8n.pt')  # 모델 경로를 'best.pt'로 바꿔도 됨
+# 🔽 YOLO 모델 다운로드 (최초 1회만 실행됨)
+model_path = 'yolov8n.pt'
+if not os.path.exists(model_path):
+    print("[INFO] YOLO 모델 다운로드 중...")
+    url = 'https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov8n.pt'
+    r = requests.get(url)
+    with open(model_path, 'wb') as f:
+        f.write(r.content)
+    print("[INFO] YOLO 모델 다운로드 완료")
 
-@app.route('/')
-def home():
-    return '✅ YOLO 이미지 분석 서버 작동 중입니다.'
+# 🔽 모델 불러오기
+model = YOLO(model_path)
 
 @app.route('/upload', methods=['POST'])
 def upload_image():
     if 'image' not in request.files:
-        return jsonify({'error': '이미지 파일이 없습니다.'}), 400
+        return jsonify({'error': 'No image uploaded'}), 400
 
     image = request.files['image']
-    if image.filename == '':
-        return jsonify({'error': '파일 이름이 없습니다.'}), 400
-
     save_path = os.path.join(UPLOAD_FOLDER, image.filename)
     image.save(save_path)
 
@@ -30,10 +34,7 @@ def upload_image():
         boxes = results[0].boxes.xyxy.cpu().tolist()
         classes = results[0].boxes.cls.cpu().tolist()
     except Exception as e:
-        return jsonify({
-            'error': 'YOLO 분석 중 오류 발생',
-            'detail': str(e)
-        }), 500
+        return jsonify({'error': 'YOLO 분석 실패', 'detail': str(e)}), 500
 
     return jsonify({
         'message': f'✅ 이미지 저장 및 분석 완료: {image.filename}',
