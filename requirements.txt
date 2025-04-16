@@ -1,6 +1,6 @@
 Flask==2.3.2
 ultralytics==8.0.20
-torch==1.13.1
-numpy
-opencv-python-headless
+torch>=1.8.0,<2.2.0
 requests
+opencv-python-headless
+
