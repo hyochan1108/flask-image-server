@@ -1,8 +1,8 @@
 Flask==2.3.2
-ultralytics==8.0.20
+ultralytics==8.3.109   # ✅ 3.12 이상 호환 가능
 torch==2.0.1
-opencv-python-headless
 requests
+
 
 
 
