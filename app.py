@@ -7,19 +7,26 @@ app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# ✅ YOLO 모델 자동 다운로드
 model_path = "yolov8n.pt"
-model_url = os.environ.get("MODEL_URL")  # Render의 환경변수에 설정 필요
+model_url = os.environ.get("MODEL_URL")
 
+# ✅ YOLO 모델 자동 다운로드
 if model_url and not os.path.exists(model_path):
     print("📥 YOLO 모델 다운로드 중...")
     r = requests.get(model_url)
-    with open(model_path, 'wb') as f:
-        f.write(r.content)
-    print("✅ YOLO 모델 다운로드 완료")
+    if r.status_code == 200:
+        with open(model_path, 'wb') as f:
+            f.write(r.content)
+        print("✅ YOLO 모델 다운로드 완료")
+    else:
+        print(f"❌ 모델 다운로드 실패: {r.status_code}")
 
 # ✅ YOLO 모델 로딩
-model = YOLO(model_path)
+try:
+    model = YOLO(model_path)
+except Exception as e:
+    print(f"❌ YOLO 모델 로딩 실패: {e}")
+    model = None
 
 @app.route('/')
 def index():
@@ -27,6 +34,9 @@ def index():
 
 @app.route('/upload', methods=['POST'])
 def upload_image():
+    if model is None:
+        return jsonify({'error': '모델이 로딩되지 않았습니다'}), 500
+
     if 'image' not in request.files:
         return jsonify({'error': '이미지 파일이 없습니다'}), 400
 
@@ -49,9 +59,7 @@ def upload_image():
     except Exception as e:
         return jsonify({'error': 'YOLO 분석 실패', 'detail': str(e)}), 500
 
-# ✅ Render용 포트 설정
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 10000))
     print(f"✅ 서버 시작: 0.0.0.0:{port}")
     app.run(host='0.0.0.0', port=port)
-
