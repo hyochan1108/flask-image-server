@@ -1,8 +1,7 @@
 Flask==2.3.2
-ultralytics==8.3.109   # ✅ 3.12 이상 호환 가능
-torch==2.0.1
+ultralytics==8.0.20
 requests
-
+numpy==1.23.5
 
 
 
