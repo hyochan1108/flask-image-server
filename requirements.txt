@@ -1,7 +1,4 @@
 Flask==2.3.2
-ultralytics==8.0.20
-requests
+ultralytics>=8.0.100
 numpy==1.23.5
-
-
-
+requests
